@@ -15,7 +15,7 @@ class Quiz {
     let category: QuizCategory
     let level: Int
     let image: String
-    let questions: Array<Question>
+    let questions: [Question]
     
     init?(json: Any) {
         if let jsonDict = json as? [String: Any],
@@ -32,7 +32,7 @@ class Quiz {
             self.category = QuizCategory(rawValue: category)!
             self.level = level
             self.image = image
-            self.questions = questions.flatMap{ Question(json: $0) }
+            self.questions = questions.compactMap{ Question(json: $0) }
         } else {
             return nil
         }

@@ -53,6 +53,7 @@ class QuestionView: UIView {
     }
     
     @IBAction func button4Clicked(_ sender: Any) {
+//        button1.tag
         if answer(button: 3) {
             self.backgroundColor = UIColor.green
         } else {
