@@ -9,55 +9,104 @@ import UIKit
 
 class QuizListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
+    let cellId = "cellId"
+    
     @IBOutlet weak var quizTable: UITableView!
     @IBOutlet weak var dohvatiButton: UIButton!
     @IBOutlet weak var errorLabel: UILabel!
     @IBOutlet weak var funFactLabel: UILabel!
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var quizImage: UIImageView!
-    @IBOutlet weak var questionViewContainer: UIView!
-
+    
     let quizService = QuizService()
     let imageService = ImageService()
-    var quizzes: Array<Quiz> = []
+    var quizzes: [Quiz] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         self.quizTable.delegate = self
         self.quizTable.dataSource = self
+        self.quizTable.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: self.quizTable.frame.size.width, height: 50))
+        self.quizTable.tableFooterView?.backgroundColor = UIColor.lightGray
+        
+        let button = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 50))
+        button.setTitle("Logout", for: .normal)
+        button.addTarget(self, action: #selector(buttonAction), for: .touchUpInside)
+
+        self.quizTable.tableFooterView?.addSubview(button)
+        
+        button.leftAnchor.constraint(equalTo: self.quizTable.tableFooterView!.leftAnchor, constant: 10).isActive = true
+        button.rightAnchor.constraint(equalTo: self.quizTable.tableFooterView!.rightAnchor, constant: -10).isActive = true
+        button.topAnchor.constraint(equalTo: self.quizTable.tableFooterView!.topAnchor, constant: 10).isActive = true
+        button.bottomAnchor.constraint(equalTo:  self.quizTable.tableFooterView!.bottomAnchor, constant: -10).isActive = true
+        
+        self.quizTable.tableFooterView?.layoutIfNeeded()
+        view.layoutIfNeeded()
+    }
+    
+    @objc func buttonAction(sender: UIButton!) {
+        let login = UINavigationController(rootViewController: LoginViewController())
+        login.modalPresentationStyle = .fullScreen
+        self.navigationController?.present(login, animated: false, completion: {})
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.quizzes.count
+        return self.quizzes.filter { $0.category == QuizCategory.getCategory(index: section) }.count
+    }
+    
+    func numberOfSections(in: UITableView) -> Int {
+        return QuizCategory.count()
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 200;//Choose your custom row height
+        print(QuizViewCell().frame.size.height)
+        
+        return 140//Choose your custom row height
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "QuizItem") as! QuizItemView
+        var cell = tableView.dequeueReusableCell(withIdentifier: cellId) as? QuizViewCell
 
-        print(quizzes[indexPath.row].title)
-
-        DispatchQueue.main.async {
-            cell.titleLabel?.text = self.quizzes[indexPath.row].title
-            cell.descriptionLabel?.text = self.quizzes[indexPath.row].description
-            cell.levelLabel?.text = String(repeating:"*", count:self.quizzes[indexPath.row].level)
-            cell.backgroundColor = QuizCategory.getColor(category: self.quizzes[indexPath.row].category)
-
-            self.imageService.fetchImage(imageUrl: self.quizzes[indexPath.row].image, completion: {
-                (image) in
-                DispatchQueue.main.async {
-                    cell.quizImageView?.image = image
-                }
-            })
+        if cell == nil {
+            cell = QuizViewCell.createCell()
         }
 
-        return cell
-    }
+        DispatchQueue.main.async {
+            cell?.setValues(quiz: self.quizzes.filter { $0.category == QuizCategory.getCategory(index: indexPath.section) }[indexPath.row])
+        }
 
+        return cell!
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.size.width, height: 50))
+        view.backgroundColor = QuizCategory.getColor(category: QuizCategory.getCategory(index: section))
+      
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = QuizCategory.getCategory(index: section).rawValue
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        view.addSubview(label)
+        label.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 10).isActive = true
+        label.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -10).isActive = true
+        label.topAnchor.constraint(equalTo: view.topAnchor, constant: 10).isActive = true
+        label.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10).isActive = true
+
+        view.layoutIfNeeded()
+        
+        return view
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 50
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.navigationController?.pushViewController(QuizScreenViewController(
+            quiz: self.quizzes.filter { $0.category == QuizCategory.getCategory(index: indexPath.section) }[indexPath.row]),
+            animated: false
+        )
+    }
+    
     @IBAction func fetch() {
         errorLabel.isHidden = true
         quizTable.isHidden = false
@@ -65,31 +114,13 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
         quizService.fetchQuizzes { (quizzes) in
             if let quizzes = quizzes {
                 self.quizzes = quizzes
-
+                
                 let count = quizzes.map { $0.questions.map { $0.question }.filter{ $0.contains("NBA") }.count }.reduce(0, +)
 
                 DispatchQueue.main.async {
                     self.funFactLabel.text = "Fun fact: \(count)"
                     self.quizTable.reloadData()
-                    self.titleLabel.text = quizzes[0].title
-                    self.titleLabel.backgroundColor = QuizCategory.getColor(category: quizzes[0].category)
-
-                    self.imageService.fetchImage(imageUrl: quizzes[0].image, completion: {
-                       (image) in
-                        DispatchQueue.main.async {
-                            self.quizImage?.image = image
-                            self.quizImage.backgroundColor = QuizCategory.getColor(category: quizzes[0].category)
-                        }
-                   })
-
-                   if let customView = Bundle.main.loadNibNamed("QuestionView", owner: self, options: nil)?.first as? QuestionView {
-                        self.questionViewContainer.addSubview(customView)
-                        customView.set(question: quizzes[0].questions[0])
-                        self.questionViewContainer.bounds = customView.frame
-                    }
                 }
-
-
             } else {
                 DispatchQueue.main.async {
                     self.quizTable.isHidden = true
@@ -99,11 +130,3 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
         }
     }
 }
-
-//class QuizItemView: UITableViewCell {
-//
-//    @IBOutlet weak var quizImageView: UIImageView?
-//    @IBOutlet weak var titleLabel: UILabel?
-//    @IBOutlet weak var descriptionLabel: UILabel!
-//    @IBOutlet weak var levelLabel: UILabel!
-//}

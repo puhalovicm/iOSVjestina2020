@@ -40,7 +40,9 @@ class LoginViewController: UIViewController {
                 userDefaults.set(userId, forKey: "userId")
 
                 DispatchQueue.main.async {
-                    self.navigationController?.pushViewController(QuizListViewController(), animated: true)
+                    let quizList = UINavigationController(rootViewController: QuizListViewController())
+                    quizList.modalPresentationStyle = .fullScreen
+                    self.present(quizList, animated: false, completion: {})
                 }
             } else {
                 DispatchQueue.main.async {
@@ -50,6 +52,4 @@ class LoginViewController: UIViewController {
             }
         })
     }
-
-
 }

@@ -12,6 +12,7 @@ class QuizService {
     static let BASE_URL = "https://iosquiz.herokuapp.com/api"
     static let QUIZZES_API = BASE_URL + "/quizzes"
     static let LOGIN_API = BASE_URL + "/session"
+    static let RESULT_API = BASE_URL + "/result"
 
     func fetchQuizzes(completion: @escaping (([Quiz]?) -> Void)) {
         if let url = URL(string: QuizService.QUIZZES_API) {
@@ -55,9 +56,7 @@ class QuizService {
             request.httpBody = postString.data(using: String.Encoding.utf8);
             
             let dataTask = URLSession.shared.dataTask(with: request) { (data, response, error) in
-                if let response = response as? HTTPURLResponse {
-                    print("response \(response.statusCode)")
-                    
+                if let response = response as? HTTPURLResponse {                    
                     if response.statusCode >= 200 && response.statusCode < 300 {
                         if let data = data {
                             do {
@@ -85,5 +84,42 @@ class QuizService {
         } else {
             completion(nil, nil)
         }
+    }
+    
+    func sendResult(quizId: Int, userId: Int, time: Double, correctAnswers: Int, completion: @escaping ((ServerResponse?) -> Void)) {
+        if let url = URL(string: QuizService.RESULT_API) {
+            var request = URLRequest(url: url)
+            
+            let userDefaults = UserDefaults.standard
+            
+            request.httpMethod = "POST"
+            request.setValue("Application/json", forHTTPHeaderField: "Content-Type")
+            guard let token = userDefaults.string(forKey: "token") else { return }
+            
+            request.setValue("\(token)", forHTTPHeaderField: "Authorization")
+            
+            let parameters: [String: Any] = [
+                "quiz_id": quizId,
+                "user_id": userId,
+                "time": time,
+                "no_of_correct": correctAnswers
+            ]
+            do {
+               request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted) // pass dictionary to nsdata object and set it as request body
+           } catch let error {
+                completion(nil)
+               print(error.localizedDescription)
+           }
+            
+            let dataTask = URLSession.shared.dataTask(with: request) { (data, response, error) in
+                if let response = response as? HTTPURLResponse {
+                    completion(ServerResponse(rawValue: response.statusCode))
+                } else {
+                    completion(nil)
+                }
+            }
+            
+            dataTask.resume()
+        } 
     }
 }
