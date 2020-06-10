@@ -9,8 +9,6 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="QuizListViewController" customModule="QuizApp" customModuleProvider="target">
             <connections>
-                <outlet property="dohvatiButton" destination="DK0-O2-5gN" id="yjU-EW-jnc"/>
-                <outlet property="errorLabel" destination="J7Q-Bf-tjG" id="lHZ-pu-PMB"/>
                 <outlet property="funFactLabel" destination="IGo-T1-Po5" id="jWJ-JB-vnw"/>
                 <outlet property="quizTable" destination="nmE-iD-2Q8" id="pSd-cm-Lrh"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
@@ -22,19 +20,13 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Fun fact " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IGo-T1-Po5">
-                    <rect key="frame" x="20" y="114" width="92.5" height="30"/>
+                    <rect key="frame" x="20" y="54" width="92.5" height="30"/>
                     <fontDescription key="fontDescription" type="system" pointSize="25"/>
                     <nil key="textColor"/>
                     <nil key="highlightedColor"/>
                 </label>
-                <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pogreska pri dohvacanju kvizova" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="J7Q-Bf-tjG">
-                    <rect key="frame" x="53" y="199" width="308.5" height="26.5"/>
-                    <fontDescription key="fontDescription" type="system" pointSize="22"/>
-                    <nil key="textColor"/>
-                    <nil key="highlightedColor"/>
-                </label>
                 <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="nmE-iD-2Q8">
-                    <rect key="frame" x="0.0" y="174" width="414" height="688"/>
+                    <rect key="frame" x="0.0" y="94" width="414" height="768"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                 </tableView>
                 <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="Gge-32-cRZ">
@@ -45,32 +37,15 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </tableViewCellContentView>
                 </tableViewCell>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DK0-O2-5gN">
-                    <rect key="frame" x="132" y="64" width="150" height="35"/>
-                    <color key="backgroundColor" systemColor="systemGreenColor" red="0.20392156859999999" green="0.78039215689999997" blue="0.34901960780000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="150" id="R9B-wJ-C9Z"/>
-                    </constraints>
-                    <fontDescription key="fontDescription" type="boldSystem" pointSize="19"/>
-                    <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                    <state key="normal" title="Dohvati"/>
-                    <connections>
-                        <action selector="fetch" destination="-1" eventType="touchUpInside" id="Tn9-3b-xJg"/>
-                    </connections>
-                </button>
             </subviews>
             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
             <constraints>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="nmE-iD-2Q8" secondAttribute="trailing" id="8oM-Bx-BHu"/>
-                <constraint firstItem="DK0-O2-5gN" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="20" id="AML-yU-HNZ"/>
                 <constraint firstItem="nmE-iD-2Q8" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="FdJ-75-da6"/>
-                <constraint firstItem="nmE-iD-2Q8" firstAttribute="top" secondItem="DK0-O2-5gN" secondAttribute="bottom" constant="75" id="PuY-kb-fQs"/>
+                <constraint firstItem="IGo-T1-Po5" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="10" id="ITL-HZ-dE6"/>
+                <constraint firstItem="nmE-iD-2Q8" firstAttribute="top" secondItem="IGo-T1-Po5" secondAttribute="bottom" constant="10" id="LRh-po-yWH"/>
                 <constraint firstItem="IGo-T1-Po5" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leadingMargin" id="UMN-e9-qqt"/>
-                <constraint firstItem="DK0-O2-5gN" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="Y0c-aJ-U5g"/>
                 <constraint firstItem="nmE-iD-2Q8" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="av2-LY-HJQ"/>
-                <constraint firstItem="IGo-T1-Po5" firstAttribute="top" secondItem="DK0-O2-5gN" secondAttribute="bottom" constant="15" id="gLJ-Oe-e27"/>
-                <constraint firstItem="J7Q-Bf-tjG" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="pPw-EF-Gh5"/>
-                <constraint firstItem="J7Q-Bf-tjG" firstAttribute="top" secondItem="DK0-O2-5gN" secondAttribute="bottom" constant="100" id="pRw-BY-5UQ"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="nmE-iD-2Q8" secondAttribute="bottom" id="sMn-fq-xj2"/>
             </constraints>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>

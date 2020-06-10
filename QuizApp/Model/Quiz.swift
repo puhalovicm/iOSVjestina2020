@@ -17,6 +17,16 @@ class Quiz {
     let image: String
     let questions: [Question]
     
+    init(quizEntity: QuizEntity, questions: [QuestionEntity]) {
+        self.id = Int(quizEntity.id)
+        self.title = quizEntity.title
+        self.description = quizEntity.quiz_description
+        self.category = QuizCategory(rawValue: quizEntity.category as String) ?? QuizCategory.SCIENCE
+        self.level = Int(quizEntity.level)
+        self.image = quizEntity.image
+        self.questions = questions.map{ Question(questionEntity: $0) }
+    }
+    
     init?(json: Any) {
         if let jsonDict = json as? [String: Any],
             let id = jsonDict["id"] as? Int,

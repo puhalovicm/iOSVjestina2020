@@ -9,14 +9,14 @@ import UIKit
 import Foundation
 
 enum QuizCategory: String, CaseIterable {
-    case Sports = "SPORTS"
-    case Science = "SCIENCE"
+    case SPORTS = "SPORTS"
+    case SCIENCE = "SCIENCE"
     
     static func getColor(category: QuizCategory) -> UIColor {
         switch category {
-        case .Sports:
+        case .SPORTS:
             return UIColor.systemOrange
-        case .Science:
+        case .SCIENCE:
             return UIColor.systemTeal
         }
     }

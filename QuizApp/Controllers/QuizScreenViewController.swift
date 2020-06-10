@@ -15,6 +15,7 @@ class QuizScreenViewController: UIViewController, QuestionViewDelegate {
     @IBOutlet weak var startButton: UIButton!
     @IBOutlet weak var correctLabel: UILabel!
     @IBOutlet weak var timeLabel: UILabel!
+    @IBOutlet weak var leaderboardButton: UIButton!
     
     let quizService = QuizService()
     
@@ -90,14 +91,7 @@ class QuizScreenViewController: UIViewController, QuestionViewDelegate {
             let nanoTime = endTime.uptimeNanoseconds - startTime!.uptimeNanoseconds // <<<<< Difference in nano seconds (UInt64)
             let timeInterval = Double(nanoTime) / 1_000_000_000
             
-            let userDefaults = UserDefaults.standard
-            
-            quizService.sendResult(quizId: quiz.id, userId: Int(userDefaults.string(forKey: "userId")!)!, time: timeInterval, correctAnswers: self.correctAnswers) { serverResponse in
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    self.navigationController?.popViewController(animated: true)
-                }
-            }
+            sendResult(timeInterval: timeInterval)
             
             DispatchQueue.main.async {
                 self.timeLabel.isHidden = false
@@ -113,6 +107,39 @@ class QuizScreenViewController: UIViewController, QuestionViewDelegate {
         }
     }
     
+    func sendResult(timeInterval: Double) {
+        let userDefaults = UserDefaults.standard
+
+        quizService.sendResult(quizId: quiz.id, userId: Int(userDefaults.string(forKey: "userId")!)!, time: timeInterval, correctAnswers: self.correctAnswers) { serverResponse in
+            
+            DispatchQueue.main.async {
+                if (serverResponse == nil || serverResponse != ServerResponse.Success) {
+                    let alertController = UIAlertController(title: "Result upload", message: "Failed", preferredStyle: .alert)
+                            
+                    let action1 = UIAlertAction(title: "Try again", style: .default) { (action:UIAlertAction) in
+                        self.sendResult(timeInterval: timeInterval)
+                    }
+
+                    let action2 = UIAlertAction(title: "Cancel", style: .cancel) { (action:UIAlertAction) in
+                        DispatchQueue.main.async {
+                            self.navigationController?.popViewController(animated: true)
+                        }
+                    }
+
+                    alertController.addAction(action1)
+                    alertController.addAction(action2)
+                    self.present(alertController, animated: true, completion: nil)
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        DispatchQueue.main.async {
+                            self.navigationController?.popViewController(animated: true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     func loadQuestion(index: Int) {
         if let customView = Bundle.main.loadNibNamed("QuestionView", owner: self, options: nil)?.first as? QuestionView {
             customView.set(question: quiz.questions[currentQuestion])
@@ -122,5 +149,13 @@ class QuizScreenViewController: UIViewController, QuestionViewDelegate {
             scrollView.contentSize = CGSize(width: CGFloat(currentQuestion + 1) * customView.bounds.width, height: customView.bounds.height)
             scrollView.contentOffset = CGPoint(x:CGFloat(index)*scrollView.frame.size.width, y: self.scrollView.contentOffset.y)
         }
+    }
+    
+    
+    @IBAction func showLeaderboard(_ sender: Any) {
+        let leaderboard = LeaderboardViewController(quiz: quiz)
+        leaderboard.modalPresentationStyle = .fullScreen
+        
+        self.navigationController?.pushViewController(leaderboard, animated: false)
     }
 }

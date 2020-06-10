@@ -38,9 +38,10 @@ class LoginViewController: UIViewController {
                 let userDefaults = UserDefaults.standard
                 userDefaults.set(token, forKey: "token")
                 userDefaults.set(userId, forKey: "userId")
+                userDefaults.set(username, forKey: "username")
 
                 DispatchQueue.main.async {
-                    let quizList = UINavigationController(rootViewController: QuizListViewController())
+                    let quizList = TabBarViewController()
                     quizList.modalPresentationStyle = .fullScreen
                     self.present(quizList, animated: false, completion: {})
                 }

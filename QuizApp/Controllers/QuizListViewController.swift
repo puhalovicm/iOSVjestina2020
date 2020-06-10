@@ -6,27 +6,78 @@
 //
 
 import UIKit
+import Reachability
 
 class QuizListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
-    let cellId = "cellId"
+    let cellId = "quizId"
     
     @IBOutlet weak var quizTable: UITableView!
-    @IBOutlet weak var dohvatiButton: UIButton!
-    @IBOutlet weak var errorLabel: UILabel!
     @IBOutlet weak var funFactLabel: UILabel!
     
     let quizService = QuizService()
     let imageService = ImageService()
     var quizzes: [Quiz] = []
+    
+    var refreshControl = UIRefreshControl()
+    let reachability = try! Reachability()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+       reachability.whenReachable = { reachability in
+           if reachability.connection == .wifi {
+               print("Reachable via WiFi")
+           } else {
+               print("Reachable via Cellular")
+           }
+       }
+       reachability.whenUnreachable = { _ in
+           print("Not reachable")
+            let alertController = UIAlertController(title: "Error", message: "Network unreachable", preferredStyle: .alert)
+            let action1 = UIAlertAction(title: "Ok", style: .cancel) { (action:UIAlertAction) in }
+            alertController.addAction(action1)
+            self.present(alertController, animated: true, completion: nil)
+       }
+
+       do {
+           try reachability.startNotifier()
+       } catch {
+           print("Unable to start notifier")
+       }
+        
+        DispatchQueue.main.async {
+            self.quizService.retrieveQuizzes(appDelegate: UIApplication.shared.delegate as! AppDelegate) {
+                (quizzes) in
+                if let quizzes = quizzes {
+                    self.quizzes = quizzes
+
+                    let count = quizzes.map { $0.questions.map { $0.question }.filter{ $0.contains("NBA") }.count }.reduce(0, +)
+
+                    DispatchQueue.main.async {
+                        self.funFactLabel.text = "Fun fact: \(count)"
+                        self.quizTable.reloadData()
+
+                        self.quizService.saveQuizzes(quizzes: quizzes, appDelegate: UIApplication.shared.delegate as! AppDelegate)
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.quizTable.isHidden = true
+                    }
+                }
+            }
+        }
+        
+        fetchQuizzes()
         
         self.quizTable.delegate = self
         self.quizTable.dataSource = self
         self.quizTable.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: self.quizTable.frame.size.width, height: 50))
         self.quizTable.tableFooterView?.backgroundColor = UIColor.lightGray
+        
+        refreshControl.attributedTitle = NSAttributedString(string: "Fetching quizzes...")
+        refreshControl.addTarget(self, action: #selector(self.refresh(_:)), for: .valueChanged)
+        quizTable.addSubview(refreshControl)
         
         let button = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 50))
         button.setTitle("Logout", for: .normal)
@@ -43,23 +94,24 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
         view.layoutIfNeeded()
     }
     
-    @objc func buttonAction(sender: UIButton!) {
-        let login = UINavigationController(rootViewController: LoginViewController())
-        login.modalPresentationStyle = .fullScreen
-        self.navigationController?.present(login, animated: false, completion: {})
+    @objc func refresh(_ sender: AnyObject) {
+        fetchQuizzes()
     }
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.quizzes.filter { $0.category == QuizCategory.getCategory(index: section) }.count
+    
+    @objc func buttonAction(sender: UIButton!) {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        appDelegate.window?.rootViewController = LoginViewController()
     }
     
     func numberOfSections(in: UITableView) -> Int {
         return QuizCategory.count()
     }
 
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        print(QuizViewCell().frame.size.height)
-        
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.quizzes.filter { $0.category == QuizCategory.getCategory(index: section) }.count
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {        
         return 140//Choose your custom row height
     }
 
@@ -107,8 +159,20 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
         )
     }
     
-    @IBAction func fetch() {
-        errorLabel.isHidden = true
+    func fetchQuizzes() {
+        if (reachability.connection == .unavailable) {
+            let alertController = UIAlertController(title: "Error", message: "Network unreachable", preferredStyle: .alert)
+            let action1 = UIAlertAction(title: "Ok", style: .cancel) { (action:UIAlertAction) in }
+            alertController.addAction(action1)
+            self.present(alertController, animated: true, completion: nil)
+            
+            DispatchQueue.main.async {
+                self.refreshControl.endRefreshing()
+            }
+            
+            return
+        }
+                
         quizTable.isHidden = false
 
         quizService.fetchQuizzes { (quizzes) in
@@ -120,12 +184,17 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
                 DispatchQueue.main.async {
                     self.funFactLabel.text = "Fun fact: \(count)"
                     self.quizTable.reloadData()
+                    
+                    self.quizService.saveQuizzes(quizzes: quizzes, appDelegate: UIApplication.shared.delegate as! AppDelegate)
                 }
             } else {
                 DispatchQueue.main.async {
                     self.quizTable.isHidden = true
-                    self.errorLabel.isHidden = false
                 }
+            }
+            
+            DispatchQueue.main.async {
+                self.refreshControl.endRefreshing()
             }
         }
     }
