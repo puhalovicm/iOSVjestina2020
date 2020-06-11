@@ -15,23 +15,53 @@ class QuizService {
     static let LOGIN_API = BASE_URL + "/session"
     static let RESULT_API = BASE_URL + "/result"
     static let LEADERBOARD_API = BASE_URL + "/score?quiz_id="
-
+    
     func saveQuizzes(quizzes: [Quiz], appDelegate: AppDelegate) {
-        deleteQuizzes(appDelegate: appDelegate)
-        
         let quizEntity = NSEntityDescription.entity(forEntityName: "QuizEntity", in: appDelegate.persistentContainer.viewContext)!
         let questionEntity = NSEntityDescription.entity(forEntityName: "QuestionEntity", in: appDelegate.persistentContainer.viewContext)!
 
-        for quiz in quizzes {
-            let quizObject = NSManagedObject(entity: quizEntity, insertInto: appDelegate.persistentContainer.viewContext) as! QuizEntity
-            quizObject.update(with: quiz)
+        let quizFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "QuizEntity")
+        let questionFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "QuestionEntity")
+        
+        do {
+            let questionResult = try appDelegate.persistentContainer.viewContext.fetch(questionFetchRequest)
+            let quizResult = try appDelegate.persistentContainer.viewContext.fetch(quizFetchRequest)
             
-            for question in quiz.questions {
-                let questionObject = NSManagedObject(entity: questionEntity, insertInto: appDelegate.persistentContainer.viewContext) as! QuestionEntity
-
-                questionObject.update(with: question, quizId: quiz.id)
+            for quiz in quizzes {
+                let existing = (quizResult as! [QuizEntity]).filter { $0.id == quiz.id }.first
+                
+                if existing != nil {
+                    existing?.update(with: quiz)
+                } else {
+                    let quizObject = NSManagedObject(entity: quizEntity, insertInto: appDelegate.persistentContainer.viewContext) as! QuizEntity
+                    quizObject.update(with: quiz)
+                }
             }
             
+            for question in questionResult as! [QuestionEntity] {
+                let q = quizzes.filter{ $0.id == question.quiz_id }.first
+                
+                if q == nil || !(q?.questions.contains(where: { (quizQuestion) -> Bool in
+                        quizQuestion.id == question.id
+                    }))! {
+                    appDelegate.persistentContainer.viewContext.delete(question as NSManagedObject)
+                    }
+            }
+            
+            for quiz in quizzes {
+                for question in quiz.questions {
+                    let existing = (questionResult as! [QuestionEntity]).filter { $0.id == question.id }.first
+                                   
+                    if existing != nil {
+                        existing?.update(with: question, quizId: quiz.id)
+                    } else {
+                        let questionObject = NSManagedObject(entity: questionEntity, insertInto: appDelegate.persistentContainer.viewContext) as! QuestionEntity
+
+                        questionObject.update(with: question, quizId: quiz.id)
+                    }
+                }
+            }
+        } catch {
         }
         
         appDelegate.saveContext()
@@ -62,9 +92,7 @@ class QuizService {
 
         do {
             let questionResult = try appDelegate.persistentContainer.viewContext.fetch(questionFetchRequest)
-            
-            let questions = (questionResult as! [QuestionEntity]).map { Question(questionEntity: $0) }
-            
+                        
             let quizResult = try appDelegate.persistentContainer.viewContext.fetch(quizFetchRequest)
                         
             var quizzes: [Quiz] = []

@@ -46,29 +46,11 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
            print("Unable to start notifier")
        }
         
-        DispatchQueue.main.async {
-            self.quizService.retrieveQuizzes(appDelegate: UIApplication.shared.delegate as! AppDelegate) {
-                (quizzes) in
-                if let quizzes = quizzes {
-                    self.quizzes = quizzes
-
-                    let count = quizzes.map { $0.questions.map { $0.question }.filter{ $0.contains("NBA") }.count }.reduce(0, +)
-
-                    DispatchQueue.main.async {
-                        self.funFactLabel.text = "Fun fact: \(count)"
-                        self.quizTable.reloadData()
-
-                        self.quizService.saveQuizzes(quizzes: quizzes, appDelegate: UIApplication.shared.delegate as! AppDelegate)
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.quizTable.isHidden = true
-                    }
-                }
-            }
-        }
+        retrieveQuizzes()
         
         fetchQuizzes()
+        
+        retrieveQuizzes()
         
         self.quizTable.delegate = self
         self.quizTable.dataSource = self
@@ -92,6 +74,30 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
         
         self.quizTable.tableFooterView?.layoutIfNeeded()
         view.layoutIfNeeded()
+    }
+    
+    func retrieveQuizzes() {
+        DispatchQueue.main.async {
+            self.quizService.retrieveQuizzes(appDelegate: UIApplication.shared.delegate as! AppDelegate) {
+                (quizzes) in
+                if let quizzes = quizzes {
+                    self.quizzes = quizzes
+
+                    let count = quizzes.map { $0.questions.map { $0.question }.filter{ $0.contains("NBA") }.count }.reduce(0, +)
+
+                    DispatchQueue.main.async {
+                        self.funFactLabel.text = "Fun fact: \(count)"
+                        self.quizTable.reloadData()
+
+                        self.quizService.saveQuizzes(quizzes: quizzes, appDelegate: UIApplication.shared.delegate as! AppDelegate)
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.quizTable.isHidden = true
+                    }
+                }
+            }
+        }
     }
     
     @objc func refresh(_ sender: AnyObject) {
@@ -177,19 +183,8 @@ class QuizListViewController: UIViewController, UITableViewDataSource, UITableVi
 
         quizService.fetchQuizzes { (quizzes) in
             if let quizzes = quizzes {
-                self.quizzes = quizzes
-                
-                let count = quizzes.map { $0.questions.map { $0.question }.filter{ $0.contains("NBA") }.count }.reduce(0, +)
-
                 DispatchQueue.main.async {
-                    self.funFactLabel.text = "Fun fact: \(count)"
-                    self.quizTable.reloadData()
-                    
                     self.quizService.saveQuizzes(quizzes: quizzes, appDelegate: UIApplication.shared.delegate as! AppDelegate)
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.quizTable.isHidden = true
                 }
             }
             

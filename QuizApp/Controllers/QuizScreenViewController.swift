@@ -37,6 +37,7 @@ class QuizScreenViewController: UIViewController, QuestionViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+   
         titleLabel.text = quiz.title
         titleLabel.backgroundColor = QuizCategory.getColor(category: quiz.category)
         imageView.kf.setImage(with: URL(string: quiz.image))
@@ -66,7 +67,7 @@ class QuizScreenViewController: UIViewController, QuestionViewDelegate {
         scrollView.isHidden = true
     }
     
-    @IBAction func startQuiz(_ sender: Any) {
+    @IBAction func startQuiz(_ sender: Any) {        
         scrollView.isHidden = false
         timeLabel.isHidden = true
         correctLabel.isHidden = true

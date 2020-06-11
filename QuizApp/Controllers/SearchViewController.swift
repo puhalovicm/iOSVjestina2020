@@ -34,6 +34,12 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
            return 140//Choose your custom row height
        }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+           self.navigationController?.pushViewController(QuizScreenViewController(
+               quiz: self.quizzes[indexPath.row]),
+               animated: false
+           )
+       }
 
     @IBOutlet weak var searchField: UITextField!
     @IBOutlet weak var searchButton: UIButton!
@@ -55,9 +61,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
 
     @IBAction func search(_ sender: Any) {
         let searchText = self.searchField.text!
-        
-        print(searchText)
-        
+                
         DispatchQueue.main.async {
            self.quizService.retrieveQuizzes(appDelegate: UIApplication.shared.delegate as! AppDelegate, search: searchText) {
                (quizzes) in

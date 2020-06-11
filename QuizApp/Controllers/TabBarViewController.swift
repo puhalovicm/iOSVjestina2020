@@ -16,7 +16,7 @@ class TabBarViewController: UITabBarController {
                 
         firstViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .featured, tag: 0)
 
-        let secondViewController = SearchViewController()
+        let secondViewController = UINavigationController(rootViewController: SearchViewController())
 
         secondViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 1)
         

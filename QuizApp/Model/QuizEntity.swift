@@ -24,6 +24,6 @@ class QuizEntity: NSManagedObject {
         self.quiz_description = quiz.description
         self.category = String(describing: quiz.category)
         self.level = Int32(quiz.level)
-        self.image = quiz.image        
+        self.image = quiz.image
     }
 }
